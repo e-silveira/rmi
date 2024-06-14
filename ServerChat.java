@@ -2,9 +2,10 @@ import java.rmi.server.UnicastRemoteObject;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.rmi.Naming;
 import java.util.ArrayList;
 
-public class ServerChat extends UnicastRemoteObject implements IServerChat {
+public class ServerChat implements IServerChat {
 
     private ArrayList<String> roomList;
 
@@ -23,8 +24,10 @@ public class ServerChat extends UnicastRemoteObject implements IServerChat {
 
     public static void main(String[] args) {
         try {
-            ServerChat serverChat = new ServerChat();
-            // Registry registry = LocateRegistry.createRegistry(2020);
+            IServerChat serverChat = new ServerChat();
+            IServerChat stub = (IServerChat) UnicastRemoteObject.exportObject(serverChat, 0);
+            Registry registry = LocateRegistry.createRegistry(2020);
+            registry.rebind("Servidor", stub);
         } catch (Exception e) {
             e.printStackTrace();
         }
