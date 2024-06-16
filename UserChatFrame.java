@@ -52,12 +52,8 @@ public class UserChatFrame extends JFrame {
         JTextField input = new JTextField();
         input.setBounds(0, 450, 800, 20);
         input.addActionListener((event) -> {
-            try {
-                user.sendMsg(input.getText());
-                input.setText("");
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            user.sendMsg(input.getText());
+            input.setText("");
         });
 
         JButton leaveButton = new JButton("Sair");
