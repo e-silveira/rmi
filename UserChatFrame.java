@@ -6,33 +6,9 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
-import java.util.ArrayList;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
-
-
 public class UserChatFrame extends JFrame {
 
-    private Consumer<String> sendMsg;
-    private Runnable leaveRoom;
-
     private JTextArea chat;
-
-    public void setSendMsg(Consumer<String> sendMsg) {
-        this.sendMsg = sendMsg;
-    }
-
-    public void unsetSendMsg() {
-        this.sendMsg = null;
-    }
-
-    public void setLeaveRoom(Runnable leaveRoom) {
-        this.leaveRoom = leaveRoom;
-    }
-
-    public void unsetLeaveRoom() {
-        this.leaveRoom = null;
-    }
 
     public void cleanChat() {
         this.chat.setText("");
@@ -42,7 +18,7 @@ public class UserChatFrame extends JFrame {
         this.chat.append(senderName + ": " + msg + "\n");
     }
 
-    UserChatFrame(Consumer<String> createRoom, Supplier<ArrayList<String>> getRooms, Consumer<String> connectRoom) {
+    UserChatFrame(UserChat user) {
 
         JList<String> roomList = new JList<String>();
 
@@ -53,20 +29,20 @@ public class UserChatFrame extends JFrame {
         createButton.setBounds(0, 200, 100, 50);
         createButton.addActionListener((event) -> {
             String roomName = JOptionPane.showInputDialog("Qual o nome da sala?");
-            createRoom.accept(roomName);
+            user.createRoom(roomName);
         });
 
         JButton searchButton = new JButton("Procurar");
         searchButton.setBounds(100, 200, 100, 50);
         searchButton.addActionListener((event) -> {
-            String[] rooms = getRooms.get().toArray(new String[0]);
+            String[] rooms = user.getRooms().toArray(new String[0]);
             roomList.setListData(rooms);
         });
 
         JButton connectButton = new JButton("Conectar");
         connectButton.setBounds(200, 200, 100, 50);
         connectButton.addActionListener((event) -> {
-            connectRoom.accept(roomList.getSelectedValue());
+            user.connectRoom(roomList.getSelectedValue());
         });
 
         chat = new JTextArea();
@@ -77,7 +53,7 @@ public class UserChatFrame extends JFrame {
         input.setBounds(0, 450, 800, 20);
         input.addActionListener((event) -> {
             try {
-                sendMsg.accept(input.getText());
+                user.sendMsg(input.getText());
                 input.setText("");
             } catch (Exception e) {
                 e.printStackTrace();
@@ -87,7 +63,7 @@ public class UserChatFrame extends JFrame {
         JButton leaveButton = new JButton("Sair");
         leaveButton.setBounds(0, 470, 100, 50);
         leaveButton.addActionListener((event) -> {
-            leaveRoom.run();
+            user.leaveRoom();
         });
 
         this.setTitle("Chat");

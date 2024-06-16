@@ -3,18 +3,90 @@ import java.rmi.server.UnicastRemoteObject;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.ArrayList;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 import javax.swing.JOptionPane;
 
 public class UserChat extends UnicastRemoteObject implements IUserChat {
 
-    public UserChatFrame userChatFrame;
-    public String userName;
+    private Registry registry;
+    private IServerChat serverChat;
+    private UserChatFrame userChatFrame;
+    private String userName;
+    private IRoomChat room;
 
-    public UserChat() throws RemoteException {
-        super();
+    public void createRoom(String roomName) {
+        try {
+            serverChat.createRoom(roomName);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public ArrayList<String> getRooms() {
+        try {
+            return serverChat.getRooms();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public void connectRoom(String roomName) {
+        try {
+            // Pesquisa o objeto no registro.
+            room = (IRoomChat) registry.lookup(roomName);
+
+            // Se conecta ao chat.
+            room.joinRoom(this.userName, this);
+
+            // Limpa o chat.
+            this.userChatFrame.cleanChat();
+        } catch (Exception e) {
+            if (e instanceof NullPointerException) {
+                JOptionPane.showMessageDialog(userChatFrame, "Seleciona uma sala.");
+            } else {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void sendMsg(String msg) {
+        try {
+            room.sendMsg(this.userName, msg);
+        } catch (Exception e) {
+            if (e instanceof NullPointerException) {
+                JOptionPane.showMessageDialog(userChatFrame, "Você não está em nenhuma sala.");
+            } else {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void leaveRoom() {
+        try {
+            room.leaveRoom(this.userName);
+            this.room = null;
+            this.userChatFrame.cleanChat();
+        } catch (Exception e) {
+            if (e instanceof NullPointerException) {
+                JOptionPane.showMessageDialog(userChatFrame, "Você não está em nenhuma sala.");
+            } else {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    UserChat(String address) throws RemoteException {
+        registry = LocateRegistry.getRegistry(address, 2020);
+
+        try {
+            serverChat = (IServerChat) registry.lookup("Servidor");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        this.askValidUserName();
+        this.userChatFrame = new UserChatFrame(this);
     }
 
     public void setUserChatFrame(UserChatFrame userChatFrame) {
@@ -36,72 +108,7 @@ public class UserChat extends UnicastRemoteObject implements IUserChat {
 
     public static void main(String[] args) {
         try {
-            UserChat user = new UserChat();
-
-            Registry registry = LocateRegistry.getRegistry(args[0], 2020);
-            IServerChat serverChat = (IServerChat) registry.lookup("Servidor");
-
-            // Função chamada quando o botão "Criar" for clicado.
-            Consumer<String> createRoom = (roomName) -> {
-                try {
-                    serverChat.createRoom(roomName);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            };
-
-            // Função chamada quando o botão "Procurar" for clicado.
-            Supplier<ArrayList<String>> getRooms = () -> {
-                try {
-                    return serverChat.getRooms();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                return null;
-            };
-
-            // Função chamada quando o botão "Conectar" for clicado.
-            Consumer<String> connectRoom = (roomName) -> {
-                try {
-                    // Pesquisa o objeto no registro.
-                    IRoomChat room = (IRoomChat) registry.lookup(roomName);
-
-                    // Se conecta ao chat.
-                    room.joinRoom(user.userName, user);
-
-                    // Atualiza a função que envia mensagens.
-                    user.userChatFrame.setSendMsg((msg) -> {
-                        try {
-                            room.sendMsg(user.userName, msg);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    });
-
-                    user.userChatFrame.setLeaveRoom(() -> {
-                        try {
-                            room.leaveRoom(user.userName);
-
-                            // Estas funções voltam a ser nulas.
-                            user.userChatFrame.unsetSendMsg();
-                            user.userChatFrame.unsetLeaveRoom();
-                            
-                            user.userChatFrame.cleanChat();
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    });
-
-                    // Limpa o chat.
-                    user.userChatFrame.cleanChat();
-                
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            };
-
-            user.askValidUserName();
-            user.setUserChatFrame(new UserChatFrame(createRoom, getRooms, connectRoom));
+            new UserChat(args[0]);
         } catch (Exception e) {
             e.printStackTrace();
         }
