@@ -90,6 +90,10 @@ public class UserChat extends UnicastRemoteObject implements IUserChat {
     }
 
     public void deliverMsg(String senderName, String msg) throws RemoteException {
+        if (msg.equals("Sala fechada pelo servidor.")){
+            // Remove a referência ao objeto remoto.
+            this.room = null;
+        }
         this.userChatFrame.appendMessageToChat(senderName, msg);
     }
 
