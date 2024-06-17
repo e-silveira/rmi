@@ -89,10 +89,6 @@ public class UserChat extends UnicastRemoteObject implements IUserChat {
         this.userChatFrame = new UserChatFrame(this);
     }
 
-    public void setUserChatFrame(UserChatFrame userChatFrame) {
-        this.userChatFrame = userChatFrame;
-    }
-
     public void deliverMsg(String senderName, String msg) throws RemoteException {
         this.userChatFrame.appendMessageToChat(senderName, msg);
     }

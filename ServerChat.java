@@ -9,7 +9,6 @@ public class ServerChat implements IServerChat {
     private ArrayList<String> roomList;
 
     public ServerChat() throws RemoteException {
-        super();
         this.roomList = new ArrayList<String>();
     }
 
@@ -23,7 +22,6 @@ public class ServerChat implements IServerChat {
             IRoomChat roomChat = new RoomChat(roomName);
             IRoomChat stub = (IRoomChat) UnicastRemoteObject.exportObject(roomChat, 0);
             registry.rebind(roomName, stub);
-            System.out.println("Add");
         } catch (Exception e) {
             e.printStackTrace();
         }

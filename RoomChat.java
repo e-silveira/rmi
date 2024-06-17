@@ -31,7 +31,13 @@ public class RoomChat implements IRoomChat {
     }
 
     public void closeRoom() throws RemoteException {
-        //
+        // Envia a mensagem para cada um dos usuários no HashMap.
+        for (Map.Entry<String, IUserChat> entry : userList.entrySet()) {
+            entry.getValue().deliverMsg(this.roomName, "Sala fechada pelo servidor.");
+        }
+
+        // Limpa o HashMap.
+        userList.clear();
     }
 
     public String getRoomName() throws RemoteException {
