@@ -46,6 +46,7 @@ public class ServerChat implements IServerChat {
 
     public static void main(String[] args) {
         try {
+            System.setProperty("java.rmi.server.hostname", "192.168.232.202");
             IServerChat serverChat = new ServerChat();
             IServerChat stub = (IServerChat) UnicastRemoteObject.exportObject(serverChat, 0);
             registry = LocateRegistry.createRegistry(2020);
